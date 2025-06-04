@@ -1,4 +1,5 @@
 from main import BooksCollector
+import pytest
 
 
 # класс TestBooksCollector объединяет набор тестов, которыми мы покрываем наше приложение BooksCollector
@@ -19,7 +20,7 @@ class TestBooksCollector:
 
         # проверяем, что добавилось именно две
         # словарь books_rating, который нам возвращает метод get_books_rating, имеет длину 2
-        assert len(collector.books_genre.keys()) == 2
+        assert len(collector.get_books_genre().keys()) == 2
 
     # --------------------------------------- М О И  Т Е С Т Ы ------------------------------------------------------------
 
@@ -35,7 +36,7 @@ class TestBooksCollector:
         collector.add_new_book('Рецепты для маленьких зомби')
         collector.add_new_book('Эволюция зомби')
 
-        assert len(collector.books_genre.keys()) == 5
+        assert len(collector.get_books_genre().keys()) == 5
 
     # 2. установка жанра
     def test_set_book_genre_sets_correct_genre(self):
@@ -43,7 +44,7 @@ class TestBooksCollector:
         collector.add_new_book('Гордость и предубеждение и зомби')
         collector.set_book_genre('Гордость и предубеждение и зомби', 'Ужасы')
 
-        assert collector.books_genre['Гордость и предубеждение и зомби'] == 'Ужасы'
+        assert collector.get_book_genre('Гордость и предубеждение и зомби') == 'Ужасы'
 
     # 3. получение  жанра книги по её имени
     def test_set_book_genre_get_correct_genre(self):
@@ -54,7 +55,11 @@ class TestBooksCollector:
         assert collector.get_book_genre('Гордость и предубеждение и зомби') == 'Ужасы'
 
     # 4. выводим список книг с определённым жанром
-    def test_get_books_with_specific_genre_returns_books_with_given_genre(self):
+    @pytest.mark.parametrize("genre, expected", [
+        ("Фантастика", ["Книга1", "Книга2"]),
+        ("Комедии", ["Книга3"])
+    ])
+    def test_get_books_with_specific_genre_returns_books_with_given_genre(self, genre, expected):
         collector = BooksCollector()
         collector.add_new_book("Книга1")
         collector.set_book_genre("Книга1", "Фантастика")
@@ -63,9 +68,9 @@ class TestBooksCollector:
         collector.add_new_book("Книга3")
         collector.set_book_genre("Книга3", "Комедии")
 
-        result = collector.get_books_with_specific_genre("Фантастика")
+        result = collector.get_books_with_specific_genre(genre)
 
-        assert sorted(result) == ["Книга1", "Книга2"]
+        assert sorted(result) == expected
 
     # 5. получаем словарь books_genre
     def test_get_books_genre_returns_full_dict(self):
@@ -73,6 +78,13 @@ class TestBooksCollector:
         collector.add_new_book("Книга")
 
         assert collector.get_books_genre() == {"Книга": ""}
+
+    def test_get_book_genre(self):
+        collector = BooksCollector()
+        collector.add_new_book("Book1")
+        collector.set_book_genre("Book1", "Фантастика")
+        assert collector.get_book_genre("Book1") == "Фантастика"
+        assert collector.get_book_genre("UnknownBook") is None
 
     # 6. Книги с возрастным рейтингом отсутствуют в списке книг для детей
     def test_get_books_for_children_only(self):
